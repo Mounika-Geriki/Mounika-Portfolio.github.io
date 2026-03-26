@@ -67,6 +67,23 @@ body {
   padding: 4.5rem 0;
 }
 
+/* Section reveal animations (left / right) */
+.section.reveal {
+  opacity: 0;
+  transform: translateX(34px);
+  transition: opacity 900ms cubic-bezier(0.22, 1, 0.36, 1), transform 900ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.section.reveal.fade-left {
+  transform: translateX(-34px);
+}
+
+.section.reveal.in-view {
+  opacity: 1;
+  transform: translateX(0);
+}
+
 .section-alt {
   /* Keep alt sections dark but translucent so particles remain visible */
   background: radial-gradient(circle at top left, rgba(17, 24, 39, 0.62) 0, rgba(2, 6, 23, 0.52) 60%);

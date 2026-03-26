@@ -62,6 +62,29 @@ if (navToggle && navLinks) {
 
 const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
 
+// Section reveals: alternate left/right for major sections
+const sideRevealSections = Array.from(document.querySelectorAll(".section"));
+sideRevealSections.forEach((section, index) => {
+  section.classList.add("reveal", index % 2 === 0 ? "fade-left" : "fade-right");
+});
+
+if ("IntersectionObserver" in window && sideRevealSections.length) {
+  const sideObserver = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          obs.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+  );
+  sideRevealSections.forEach((el) => sideObserver.observe(el));
+} else {
+  sideRevealSections.forEach((el) => el.classList.add("in-view"));
+}
+
 // In-page anchor navigation
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
@@ -86,8 +109,8 @@ if (yearSpan) {
 }
 
 // Section reveal: fade in from below, once
-const revealSections = document.querySelectorAll(".contact-section, .other-projects");
-if (revealSections.length && !prefersReducedMotion && "IntersectionObserver" in window) {
+const revealSections = document.querySelectorAll(".other-projects");
+if (revealSections.length && "IntersectionObserver" in window) {
   const sectionObserver = new IntersectionObserver(
     (entries, obs) => {
       entries.forEach((entry) => {
