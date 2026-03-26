@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
+  <!-- isometric platform -->
+  <path fill="#334155" d="M64 96 24 76 64 56l40 20-40 20z"/>
+  <path fill="#1e293b" d="M24 76v12l40 20v-20L24 76z"/>
+  <path fill="#475569" d="m104 76-40 20v20l40-20V76z"/>
+  <!-- figure left -->
+  <ellipse cx="46" cy="38" rx="14" ry="12" fill="#A78BFA"/>
+  <path fill="#6366F1" d="m32 48 14-6 14 6v28H32V48z"/>
+  <path fill="#4F46E5" d="M32 48v28l-8-4V52l8-4z"/>
+  <!-- figure right -->
+  <ellipse cx="86" cy="38" rx="14" ry="12" fill="#c4b5fd"/>
+  <path fill="#8B5CF6" d="m72 48 14-6 14 6v28H72V48z"/>
+  <path fill="#7c3aed" d="M100 48v28l8-4V52l-8-4z"/>
+</svg>

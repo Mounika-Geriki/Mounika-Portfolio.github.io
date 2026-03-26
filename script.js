@@ -1,9 +1,14 @@
-// Typewriter effect for hero name (runs when DOM is ready; fallback so name always shows)
+// Hero name: typewriter effect (no cursor)
 function initTypewriter() {
   const el = document.querySelector(".typewriter-text");
   if (!el) return;
   const text = el.getAttribute("data-typing") || "Mounika";
-  const speed = 180;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    el.textContent = text;
+    return;
+  }
+  const speed = 160;
+  el.textContent = "";
   let i = 0;
   function type() {
     if (i < text.length) {
@@ -13,11 +18,11 @@ function initTypewriter() {
     }
   }
   type();
-  // If typewriter didn't start (e.g. script error), show name after delay
   setTimeout(function () {
     if (el.textContent === "") el.textContent = text;
   }, text.length * speed + 500);
 }
+
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", initTypewriter);
 } else {
@@ -55,7 +60,9 @@ if (navToggle && navLinks) {
   });
 }
 
-// Smooth scroll
+const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+
+// In-page anchor navigation
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
     const targetId = this.getAttribute("href");
@@ -63,154 +70,61 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
       e.preventDefault();
       const target = document.querySelector(targetId);
       if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        target.scrollIntoView({
+          behavior: prefersReducedMotion ? "auto" : "smooth",
+          block: "start",
+        });
       }
     }
   });
 });
- 
+
 // Footer year
 const yearSpan = document.getElementById("year");
 if (yearSpan) {
   yearSpan.textContent = new Date().getFullYear();
 }
 
-/* =========================
-   Scroll reveal (IntersectionObserver)
-   ========================= */
+// Section reveal: fade in from below, once
+const revealSections = document.querySelectorAll(".contact-section, .other-projects");
+if (revealSections.length && !prefersReducedMotion && "IntersectionObserver" in window) {
+  const sectionObserver = new IntersectionObserver(
+    (entries, obs) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in-view");
+          obs.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.2 }
+  );
+  revealSections.forEach((el) => sectionObserver.observe(el));
+} else {
+  revealSections.forEach((el) => el.classList.add("in-view"));
+}
 
-// 1) Mark sections for reveal
-// We'll reveal: hero, and all sections, plus footer (optional)
-const revealTargets = [
-  document.querySelector(".hero"),
-  ...document.querySelectorAll(".section"),
-  document.querySelector(".site-footer"),
-].filter(Boolean);
-
-// Add base reveal class
-revealTargets.forEach((el, idx) => {
-  el.classList.add("reveal");
-
-  // Optional: add some variation so it feels more premium
-  // Alternate subtle direction
-  if (idx % 3 === 1) el.classList.add("fade-left");
-  if (idx % 3 === 2) el.classList.add("fade-right");
-});
-
-// 2) Observe + reveal when in view
-const observer = new IntersectionObserver(
-  (entries, obs) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("is-visible");
-        // Reveal once then stop observing (clean + fast)
-        obs.unobserve(entry.target);
-      }
-    });
-  },
-  {
-    // reveal when ~18% is visible
-    threshold: 0.18,
-    // start revealing just before it fully enters
-    rootMargin: "0px 0px -10% 0px",
-  }
-);
-
-revealTargets.forEach((el) => observer.observe(el));
-
-/* =========================
-   Category Tabs with Slide Animation
-   ========================= */
-
+/* Project category tabs — instant switch (no slide animation) */
 const categoryTabs = document.querySelectorAll(".category-tab");
 const projectCategories = document.querySelectorAll(".project-category");
-
-// Initialize first category on page load (no animation)
-document.addEventListener("DOMContentLoaded", () => {
-  const firstCategory = document.querySelector(".project-category.active");
-  if (firstCategory) {
-    firstCategory.style.display = "block";
-    firstCategory.style.opacity = "1";
-    firstCategory.style.transform = "translateX(0)";
-  }
-});
 
 categoryTabs.forEach((tab) => {
   tab.addEventListener("click", () => {
     const targetCategory = tab.getAttribute("data-category");
-    
-    // Remove active class from all tabs
     categoryTabs.forEach((t) => t.classList.remove("active"));
-    // Add active class to clicked tab
     tab.classList.add("active");
-    
-    // Determine slide direction based on current active category
-    const currentActive = document.querySelector(".project-category.active");
-    if (!currentActive) return;
-    
-    const currentIndex = Array.from(projectCategories).indexOf(currentActive);
-    const targetIndex = Array.from(projectCategories).findIndex(
-      (cat) => cat.getAttribute("data-category") === targetCategory
-    );
-    
-    // Don't do anything if clicking the same category
-    if (currentIndex === targetIndex) return;
-    
-    // Determine slide direction
-    const slideFromRight = targetIndex > currentIndex;
-    
-    // Slide out current category
-    if (slideFromRight) {
-      currentActive.classList.add("slide-out-left");
-    } else {
-      currentActive.classList.add("slide-out-right");
-    }
-    
-    setTimeout(() => {
-      currentActive.classList.remove("active", "slide-out-left", "slide-out-right");
-      currentActive.style.display = "none";
-    }, 400);
-    
-    // Slide in new category from the side
-    setTimeout(() => {
-      const targetCategoryEl = document.querySelector(
-        `.project-category[data-category="${targetCategory}"]`
-      );
-      if (targetCategoryEl) {
-        // Set initial position - always slide in from right side
-        targetCategoryEl.style.display = "block";
-        targetCategoryEl.style.transform = "translateX(100px)";
-        targetCategoryEl.style.opacity = "0";
-        targetCategoryEl.classList.add("active");
-        
-        // Trigger slide in animation from right
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            targetCategoryEl.style.transform = "translateX(0)";
-            targetCategoryEl.style.opacity = "1";
-            
-            // Clean up inline styles after animation completes
-            setTimeout(() => {
-              targetCategoryEl.style.transform = "";
-              targetCategoryEl.style.opacity = "";
-            }, 600);
-          });
-        });
-      }
-    }, 400);
+    projectCategories.forEach((cat) => {
+      cat.classList.toggle("active", cat.getAttribute("data-category") === targetCategory);
+    });
   });
 });
 
-/* =========================
-   Background particles (Canvas)
-   ========================= */
-
+/* Background particles (canvas) — subtle dot + line network */
 (() => {
   const canvas = document.getElementById("bg-particles");
   if (!canvas) return;
 
-  const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  if (prefersReducedMotion) return;
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) return;
 
   /** @type {CanvasRenderingContext2D | null} */
   const ctx = canvas.getContext("2d", { alpha: true });
@@ -224,7 +138,7 @@ categoryTabs.forEach((tab) => {
   let rafId = 0;
 
   const CONFIG = {
-    density: 0.000085, // particles per px^2
+    density: 0.000085,
     minR: 0.9,
     maxR: 2.6,
     minV: 0.08,
@@ -232,7 +146,7 @@ categoryTabs.forEach((tab) => {
     linkDist: 140,
     linkAlpha: 0.075,
     dotAlpha: 0.62,
-    tint: { r: 99, g: 102, b: 241 }, // accent-ish
+    tint: { r: 99, g: 102, b: 241 },
   };
 
   function rand(min, max) {
@@ -268,19 +182,16 @@ categoryTabs.forEach((tab) => {
   function step() {
     ctx.clearRect(0, 0, w, h);
 
-    // Move
     for (const p of particles) {
       p.x += p.vx;
       p.y += p.vy;
 
-      // Wrap
       if (p.x < -10) p.x = w + 10;
       if (p.x > w + 10) p.x = -10;
       if (p.y < -10) p.y = h + 10;
       if (p.y > h + 10) p.y = -10;
     }
 
-    // Links (O(n^2) but capped small)
     for (let i = 0; i < particles.length; i++) {
       const a = particles[i];
       for (let j = i + 1; j < particles.length; j++) {
@@ -301,7 +212,6 @@ categoryTabs.forEach((tab) => {
       }
     }
 
-    // Dots
     for (const p of particles) {
       ctx.fillStyle = `rgba(${CONFIG.tint.r}, ${CONFIG.tint.g}, ${CONFIG.tint.b}, ${CONFIG.dotAlpha})`;
       ctx.beginPath();
@@ -324,13 +234,12 @@ categoryTabs.forEach((tab) => {
     resizeT = window.setTimeout(resize, 120);
   });
 
-  // Pause when tab hidden (saves battery)
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) {
       cancelAnimationFrame(rafId);
       rafId = 0;
-    } else {
-      if (!rafId) rafId = window.requestAnimationFrame(step);
+    } else if (!rafId) {
+      rafId = window.requestAnimationFrame(step);
     }
   });
 
